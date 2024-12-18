@@ -103,4 +103,9 @@ struct proc {
   struct file *ofile[NOFILE];  // Open files
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
+
+  int interval;                // 时间间隔
+  uint64 handler;              // 调用的函数
+  int ticks;                   // 经过的时钟数
+  struct trapframe *st_trapframe; // 保存的寄存器，用于中断后恢复原程序 
 };

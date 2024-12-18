@@ -77,9 +77,19 @@ usertrap(void)
     exit(-1);
 
   // give up the CPU if this is a timer interrupt.
-  if(which_dev == 2)
+  if(which_dev == 2) {
+    if(p->interval) {
+      if(p->ticks == p->interval) {
+        // 该进程已经用完了它的时间片，需要重新设置它的时间片
+        // p->ticks = 0; 
+        *p->st_trapframe = *p->trapframe;
+        p->trapframe->epc = p->handler;
+      }
+      p->ticks++;
+    }
+    // 此时调用yield函数，将CPU的控制权交给其他进程。
     yield();
-
+  }
   usertrapret();
 }
 
