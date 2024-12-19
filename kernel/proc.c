@@ -694,3 +694,26 @@ procdump(void)
     printf("\n");
   }
 }
+
+int
+lazy_allocate(uint64 va){
+  uint64 pa = (uint64)kalloc();
+  struct proc *p = myproc();
+  if (pa == 0) {
+    return -1;
+  } else if (va >= p->sz || va <= PGROUNDDOWN(p->trapframe->sp)) {
+    // 不是由懒分配引起
+    kfree((void*)pa);
+    return -1;
+  } else {
+    va = PGROUNDDOWN(va);
+    // 分配新的内存块之前，使用memset函数将其初始化为0
+    memset((void*)pa, 0, PGSIZE);
+    // 建立映射：将一个物理内存页面映射到指定进程的虚拟地址空间中
+    if (mappages(p->pagetable, va, PGSIZE, pa, PTE_W | PTE_U | PTE_R) != 0) {
+      kfree((void*)pa);
+      return -1;
+    }
+  }
+  return 0;
+}
